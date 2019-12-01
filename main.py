@@ -1,6 +1,5 @@
 import pygame
 import pygame_gui
-import os
 from random import *
 
 # Pygame
@@ -17,7 +16,7 @@ myfont = pygame.font.SysFont('Arial', 30)
 # Variables du jeu
 timer = 0
 nbr_note = 0
-total_note = -1
+total_note = 0
 clock = pygame.time.Clock()
 points = 0
 clicked = False
@@ -25,9 +24,8 @@ random_note = None
 
 
 class Note:
-    def __init__(self, nom, numero, position):
+    def __init__(self, nom, position):
         self.nom = nom
-        self.numero = numero
         self.position = position
 
     def get_image(self):
@@ -35,19 +33,19 @@ class Note:
         Donne une image de note normal si celle-ci est situé sur ou en dessous de la ligne du milieu de la partition.
         Else: une image inversée
         """
-        if self.position < 4:  # note inversé
+        if self.position < 2:  # note inversé
             return "image/note_reversed.png"
-        elif self.position >= 4:  # note normal
+        elif self.position >= 2:  # note normal
             return "image/note_normal.png"
 
     def centre(self):
         """
         Donne le centre de la note pour lui donne une position exacte.
         """
-        if self.position < 4:  # note inversé
+        if self.position < 2:  # note inversé
             return 12, 9  # x,y avec O en NW
-        elif self.position >= 4:  # note normal
-            return 12, 54  # x,y avec O en NW
+        elif self.position >= 2:  # note normal
+            return 12, 64  # x,y avec O en NW
 
     def afficher_note(self, nb_notes):
         # Affichage de la note
@@ -76,30 +74,29 @@ class Note:
 
 
 # Liste notes
-Mi2 = Note("Mi", 1, -3)
-Re2 = Note("Ré", 1, -2.50001)
-Do2 = Note("Do", 1, -2)
-Si1 = Note("Si", 1, -1.50001)
-La1 = Note("La", 1, -1)
-Sol1 = Note("Sol", 1, -0.50001)
-Fa1 = Note("Fa", 1, 0)
-Mi1 = Note("Mi", 1, 0.50001)
-Re1 = Note("Ré", 1, 1)
-Do1 = Note("Do", 1, 1.50001)
-Si0 = Note("Si", 1, 2)
-La0 = Note("La", 1, 2.50001)
-Sol0 = Note("Sol", 1, 3)
-Fa0 = Note("Fa", 1, 3.50001)
-Mi0 = Note("Mi", 1, 4)
-Re0 = Note("Ré", 1, 4.50001)
-Do0 = Note("Do", 1, 5)
-Si_F = Note("Si", 1, 5.50001)
-La_F = Note("La", 1, 6)
-Sol_F = Note("Sol", 1, 6.50001)
-Fa_F = Note("Fa", 1, 7)
+Mi2 = Note("Mi", -3)
+Re2 = Note("Ré", -2.50001)
+Do2 = Note("Do", -2)
+Si1 = Note("Si", -1.50001)
+La1 = Note("La", -1)
+Sol1 = Note("Sol", -0.50001)
+Fa1 = Note("Fa", 0)
+Mi1 = Note("Mi", 0.50001)
+Re1 = Note("Ré", 1)
+Do1 = Note("Do", 1.50001)
+Si0 = Note("Si", 2)
+La0 = Note("La", 2.50001)
+Sol0 = Note("Sol", 3)
+Fa0 = Note("Fa", 3.50001)
+Mi0 = Note("Mi", 4)
+Re0 = Note("Ré", 4.50001)
+Do0 = Note("Do", 5)
+Si_F = Note("Si", 5.50001)
+La_F = Note("La", 6)
+Sol_F = Note("Sol", 6.50001)
+Fa_F = Note("Fa", 7)
 
-note_liste = [Mi2, Re2, Do2, Si1, La1, Sol1, Fa1, Mi1, Re1, Do1, Si0, La0, Sol0, Fa0, Mi0, Re0, Do0, Si_F, La_F, Sol_F,
-              Fa_F]
+note_liste = [Mi2, Re2, Do2, Si1, La1, Sol1, Fa1, Mi1, Re1, Do1, Si0, La0, Sol0, Fa0, Mi0, Re0, Do0, Si_F, La_F, Sol_F, Fa_F]
 
 taille_ligne = 550
 decalage_ligne = 20
@@ -139,12 +136,6 @@ slider = pygame_gui.elements.UIHorizontalSlider(relative_rect=pygame.Rect((130, 
                                                 start_value=1,
                                                 value_range=(1, 10),
                                                 manager=manager)
-
-
-# hover_slider = pygame_gui.elements.UITooltip(html_text='Ceci est un texte de test',
-#                                              hover_distance=(0,20),
-#                                              manager=manager,
-#                                              parent_element=start_button)
 
 
 def afficher_partition():
@@ -188,8 +179,6 @@ def test_bonne_note(note):
     """
     Test si la note est juste par rapport à la note aléatoire,
     en argument la note à tester
-    :param note:
-    :return:
     """
     global clicked
     global points
@@ -217,6 +206,7 @@ def main():
     afficher_partition()
 
     while launched:
+        afficher_score(points, total_note)
         dt = clock.tick(60)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -263,9 +253,8 @@ def main():
             if (timer <= 0 and nbr_note < 13) or (clicked and nbr_note < 13):
                 # Si le temps est écoulé ou si on a cliqué
                 nbr_note += 1
-                if timer <= 0:
+                if timer <= 0 and nbr_note > 1:
                     total_note += 1
-                afficher_score(points, total_note)
                 random_note = choice(note_liste)
                 Note.afficher_note(random_note, nbr_note)
                 timer = 10000/round(slider.get_current_value())
@@ -274,6 +263,7 @@ def main():
                 # Si on a atteint la fin de la portée on reset tout l'affichage
                 reset_partition()
                 nbr_note = 0
+                timer = 0
                 clicked = False
 
         manager.update(dt / 1000.0)
